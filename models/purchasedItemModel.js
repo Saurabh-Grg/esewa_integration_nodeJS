@@ -1,6 +1,5 @@
-// purchasedItemModel.js
 const { DataTypes } = require('sequelize');
-const sequelize = require('./db'); // Importing the Sequelize instance
+const sequelize = require('../dbConfig/db'); // Importing the Sequelize instance
 const Item = require('./itemModel'); // Importing the Item model to reference it
 
 const PurchasedItem = sequelize.define('PurchasedItem', {
@@ -31,9 +30,9 @@ const PurchasedItem = sequelize.define('PurchasedItem', {
 
 // purchasedItemModel.js
 PurchasedItem.belongsTo(Item, {
-    foreignKey: 'itemId', // Correct foreign key field
-    allowNull: false, // Foreign key cannot be null
-    onDelete: 'CASCADE',
-  });
+  foreignKey: 'itemId', // Correct foreign key field
+  allowNull: false, // Foreign key cannot be null
+  onDelete: 'CASCADE',
+});
 
 module.exports = PurchasedItem;
