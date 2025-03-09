@@ -21,11 +21,6 @@ const initializePayment = async (req, res) => {
       });
     }
 
-    // Calculate 5% commission
-    // const commissionAmount = (totalPrice * 0.05).toFixed(2);
-    // const totalPriceWithCommission = (parseFloat(totalPrice) + parseFloat(commissionAmount)).toFixed(2);
-
-
     // Create purchase record with UUID
     const purchasedItemId = uuidv4();
     const purchasedItemData = await PurchasedItem.create({
@@ -56,25 +51,46 @@ const initializePayment = async (req, res) => {
   }
 };
 
+
 const completePayment = async (req, res) => {
   const { data } = req.query;
 
   try {
+    console.log("🔹 Received payment completion request:", data); // Debugging log
+
     // Verify payment with eSewa
     const paymentInfo = await verifyEsewaPayment(data);
+    console.log("✅ eSewa verification response:", paymentInfo); // Debugging log
 
     const transactionUuid = paymentInfo.response.transaction_uuid;
     if (!transactionUuid) {
+      console.error("❌ Invalid transaction UUID received!");
       return res.status(400).json({ success: false, message: "Invalid transaction UUID" });
     }
 
-    // Fetch purchased item
+    // Fetch the purchased item
     const purchasedItemData = await PurchasedItem.findByPk(transactionUuid);
     if (!purchasedItemData) {
-      return res.status(500).json({ success: false, message: "Purchase not found" });
+      console.error("❌ No matching purchase found for UUID:", transactionUuid);
+      return res.status(404).json({ success: false, message: "Purchase not found" });
     }
 
-    // Prepare payment data
+    console.log("🔹 Found purchase record:", purchasedItemData.dataValues); // Debugging log
+
+    // Check if payment was successful
+    if (paymentInfo.response.status !== "COMPLETE") {
+      console.error("❌ Payment verification failed! Deleting purchased item...");
+
+      // Delete the failed payment record
+      await PurchasedItem.destroy({ where: { purchasedItemId: transactionUuid } });
+      console.log("✅ Deleted failed purchase record:", transactionUuid);
+
+      return res.status(400).json({ success: false, message: "Payment verification failed, purchase record deleted" });
+    }
+
+    console.log("✅ Payment verified successfully!");
+
+    // Save payment details
     const paymentData = {
       pidx: paymentInfo.decodedData.transaction_code,
       transactionId: paymentInfo.decodedData.transaction_code,
@@ -86,15 +102,29 @@ const completePayment = async (req, res) => {
       purchasedItemId: purchasedItemData.purchasedItemId,
     };
 
-    // Save payment record
     const paymentRecord = await Payment.create(paymentData);
+    console.log("✅ Payment record saved:", paymentRecord.dataValues);
 
     // Update purchase status to completed
     await PurchasedItem.update({ status: "completed" }, { where: { purchasedItemId: transactionUuid } });
+    console.log("✅ Purchase status updated to 'completed'");
 
     res.json({ success: true, message: "Payment successful", paymentRecord });
+
   } catch (error) {
-    res.status(500).json({ success: false, message: "An error occurred during payment verification", error: error.message });
+    console.error("❌ Error during payment verification:", error);
+
+    // Try to delete the purchased item if it exists
+    if (req.query.transaction_uuid) {
+      await PurchasedItem.destroy({ where: { purchasedItemId: req.query.transaction_uuid } });
+      console.log("✅ Deleted purchase record due to an error:", req.query.transaction_uuid);
+    }
+
+    res.status(500).json({
+      success: false,
+      message: "An error occurred during payment verification",
+      error: error.message,
+    });
   }
 };
 

@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Vidhyatra</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            display: flex;
+            background: #ecf0f1;
+        }
+        .sidebar {
+            width: 220px;
+            background: #2c3e50;
+            color: white;
+            padding: 20px;
+            height: 100vh;
+            position: fixed;
+        }
+        .sidebar h2 {
+            text-align: center;
+            border-bottom: 1px solid white;
+            padding-bottom: 10px;
+        }
+        .sidebar a {
+            display: block;
+            color: white;
+            text-decoration: none;
+            padding: 12px;
+            border-radius: 5px;
+            transition: 0.3s;
+        }
+        .sidebar a:hover {
+            background: #34495e;
+        }
+        .main-content {
+            margin-left: 240px;
+            padding: 20px;
+            width: 100%;
+        }
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            background: #34495e;
+            color: white;
+            padding: 15px;
+            border-radius: 5px;
+        }
+        .dropdown, .form-group {
+            margin: 10px 0;
+        }
+        #routineForm {
+            display: none;
+            border: 1px solid #ccc;
+            padding: 15px;
+            background: white;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+        .table-container {
+            margin-top: 20px;
+            background: white;
+            padding: 15px;
+            border-radius: 5px;
+            box-shadow: 0px 0px 10px rgba(0,0,0,0.1);
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: center;
+        }
+        th {
+            background: #2c3e50;
+            color: white;
+        }
+        button {
+            background: #27ae60;
+            color: white;
+            padding: 10px;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+        button:hover {
+            background: #219150;
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <h2>Vidhyatra</h2>
+        <a href="#">Dashboard</a>
+        <a href="#">Routine Manage</a>
+        <a href="#">Calendar Manage</a>
+    </div>
+    <div class="main-content">
+        <div class="top-bar">
+            <span>Vidhyatra</span>
+            <div>
+                <span>🔔</span>
+                <span>👤</span>
+            </div>
+        </div>
+        <h2>Routine Management</h2>
+        <div>
+            <select id="faculty">
+                <option value="BBA">BBA</option>
+                <option value="BIT">BIT</option>
+            </select>
+            <select id="year">
+                <option value="1st">1st Year</option>
+                <option value="2nd">2nd Year</option>
+                <option value="3rd">3rd Year</option>
+            </select>
+            <select id="section">
+                <option value="C1">C1</option>
+                <option value="C2">C2</option>
+                <option value="C3">C3</option>
+                <option value="C4">C4</option>
+            </select>
+            <button onclick="showRoutineForm()">Create Routine</button>
+        </div>
+        <div id="routineForm">
+            <select id="day">
+                <option value="Monday">Monday</option>
+                <option value="Tuesday">Tuesday</option>
+                <option value="Wednesday">Wednesday</option>
+            </select>
+            <select id="module">
+                <option value="Maths">Maths</option>
+                <option value="Physics">Physics</option>
+            </select>
+            <select id="teacher">
+                <option value="Mr. Sharma">Mr. Sharma</option>
+                <option value="Ms. Singh">Ms. Singh</option>
+            </select>
+            <select id="venue">
+                <option value="Room 101">Room 101</option>
+                <option value="Room 202">Room 202</option>
+            </select>
+            <input type="time" id="startTime">
+            <input type="time" id="endTime">
+            <button onclick="addRoutine()">Next</button>
+        </div>
+        <div class="table-container">
+            <h3>Added Routines:</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Day</th>
+                        <th>Module</th>
+                        <th>Teacher</th>
+                        <th>Venue</th>
+                        <th>Start Time</th>
+                        <th>End Time</th>
+                    </tr>
+                </thead>
+                <tbody id="routineList"></tbody>
+            </table>
+            <button onclick="submitRoutine()">Final Submit</button>
+        </div>
+    </div>
+    <script>
+        let routines = [];
+        function showRoutineForm() {
+            document.getElementById('routineForm').style.display = 'block';
+        }
+        function addRoutine() {
+            let routine = {
+                day: document.getElementById('day').value,
+                module: document.getElementById('module').value,
+                teacher: document.getElementById('teacher').value,
+                venue: document.getElementById('venue').value,
+                startTime: document.getElementById('startTime').value,
+                endTime: document.getElementById('endTime').value
+            };
+            routines.push(routine);
+            displayRoutines();
+        }
+        function displayRoutines() {
+            let list = document.getElementById('routineList');
+            list.innerHTML = '';
+            routines.forEach(r => {
+                list.innerHTML += `<tr><td>${r.day}</td><td>${r.module}</td><td>${r.teacher}</td><td>${r.venue}</td><td>${r.startTime}</td><td>${r.endTime}</td></tr>`;
+            });
+        }
+        function submitRoutine() {
+            alert('Submitting routines for ' + document.getElementById('faculty').value + ' ' + document.getElementById('year').value + ' ' + document.getElementById('section').value + '\n' + JSON.stringify(routines));
+        }
+    </script>
+</body>
+</html>
